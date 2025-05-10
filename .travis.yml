@@ -1,36 +1,25 @@
-os: linux
-dist: focal
-language: python
+language: python  
+python:  
+  - "3.8"  
+dist: bionic  # Ubuntu 18.04 (поддерживает Java 8, необходимую для Android SDK)  
 
-python:
-  - 3.8
+before_install:  
+  - sudo apt-get update  
+  - sudo apt-get install -y git zip unzip openjdk-8-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev  
 
-install:
-  - sudo apt -y install python3-distutils
-  - sudo apt -y install python3-pip
-  - sudo apt install -y git
-  - git clone https://github.com/kivy/buildozer.git
-  - python3 -m site
-  - ls -l
-  - cd buildozer
-  - ls -l
-  - python3 setup.py install
-  - ls -l
-  - cd ..
-  - ls -l
+install:  
+  - pip install --upgrade pip virtualenv  
+  - pip install buildozer cython==0.29.19 kivy  
 
-  - sudo apt update
-  - sudo apt install -y git zip unzip openjdk-8-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
-  - pip3 install --upgrade Cython==0.29.19 virtualenv
-  - export PATH=$PATH:~/.local/bin/
-  - ls -la
-  - echo "TODO COMPILE 32bit"
-  - yes | cp -f buildozer-32bit.spec buildozer.spec
-  - yes | travis_wait 20 buildozer android debug
-  - ls -la
-  - ls bin/ -l
-  - echo "TODO"
-  - gem install dpl --pre
-  - dpl releases --token $GITHUB_TOKEN --file "bin/ftpserver-1.0-armeabi-v7a-debug.apk" --tag_name "v.2.3"
-script:
-  - echo "OK"
+script:  
+  - buildozer init  
+  - echo "requirements = python3,kivy,pyftpdlib,android" > buildozer.spec  
+  - buildozer android debug  
+
+deploy:  
+  provider: releases  
+  api_key: $GITHUB_TOKEN  
+  file: bin/*.apk  
+  skip_cleanup: true  
+  on:  
+    tags: true  
